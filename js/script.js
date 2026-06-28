@@ -167,6 +167,8 @@ function tocarSomEfeito(nomeEfeito) {
 }
 
 function playEffectAudio(caminho) {
+    // Se já houver um som de efeito em reprodução, interrompe antes de tocar o próximo.
+    pararEfeitosAudio();
     const audio = new Audio(caminho);
     audio.volume = 1;
     effectAudios.push(audio);
