@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Press+Start+2P&display=swap"
+    rel="stylesheet">
+
+  <meta charset="utf-8">
+  <title>Dragon Ball Z RPG</title>
+  <style>
+    #telaInicio {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: black url("imagens/telaInicial.jpg") center/cover no-repeat;
+      background-color: rgba(0, 0, 0, 0.7);
+      background-blend-mode: darken;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: yellow;
+      font-family: 'Arial', sans-serif;
+      z-index: 9999;
+      /* fica por cima */
+    }
+
+    #telaInicio h1 {
+      font-size: 65px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px red;
+    }
+
+    #btnStart {
+      background: linear-gradient(45deg, orange, red);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      /* fonte futurista e espaçada */
+      font-size: 20px;
+      font-weight: bold;
+      padding: 12px 24px;
+      margin: 10px;
+      border: 2px solid yellow;
+      border-radius: 8px;
+      cursor: pointer;
+      text-shadow: 0 0 5px black;
+      transition: transform 0.2s, box-shadow 0.2s;
+      letter-spacing: 2px;
+    }
+
+    #btnStart button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px yellow;
+    }
+
+    #btnStart button:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 10px red;
+    }
+
+    .atributo {
+      color: black;
+      /* verde */
+      text-align: center;
+      margin-top: -10px;
+      /* sobe os atributos */
+      margin-bottom: 1px;
+      /* espaço pequeno abaixo */
+      font-size: 18px;
+    }
+
+    #game-over-overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 99%;
+      height: 70vh;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+    }
+
+    #controls button {
+      /* Configuração do tamanho dos botões */
+      background: linear-gradient(45deg, orange, red);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: bold;
+      padding: 6px;
+      margin: 0;
+      border: 2px solid yellow;
+      border-radius: 8px;
+      cursor: pointer;
+      text-shadow: 0 0 5px black;
+      transition: transform 0.2s, box-shadow 0.2s;
+      letter-spacing: 2px;
+      width: 80px;
+      height: 80px;
+      min-height: 80px;
+      max-width: 80px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #controls button img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    #controls .btn-ataque {
+      background: linear-gradient(45deg, #ff4d4d, #b30000);
+      border-color: #ffb3b3;
+    }
+
+    #controls .btn-habilidade {
+      background: linear-gradient(45deg, #4da3ff, #0057b8);
+      border-color: #b8d9ff;
+    }
+
+    #controls .btn-item {
+      background: linear-gradient(45deg, #ffb347, #d97706);
+      border-color: #ffe0b3;
+    }
+
+    #controls .btn-defesa {
+      background: linear-gradient(45deg, #ffe066, #ffb400);
+      border-color: #fff2b3;
+    }
+
+    #controls .btn-carregar-ki {
+      background: linear-gradient(45deg, #4cd964, #1f8f3f);
+      border-color: #b7f0c1;
+    }
+
+    #controls .btn-kaioken {
+      background: linear-gradient(45deg, #a020f0, #500080);
+      border-color: #d8b3ff;
+    }
+
+    #controls button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 15px yellow;
+    }
+
+    #controls button:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 10px red;
+    }
+
+
+    body {
+      background-image: url(imagens/cenarioSaiyajin.png);
+      background-size: cover;
+      background-position: center;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #battle-log {
+      color: white;
+      border: 2px solid #555;
+      padding: 10px;
+      height: 70vh;
+      overflow-y: auto;
+      background-color: rgba(0, 0, 0, 0.7);
+      /* 0.5 = 50% escuridao */
+      background-blend-mode: darken;
+    }
+
+
+    #battle-container {
+      position: relative;
+      width: 90%;
+      margin: 10px auto;
+    }
+
+    #btnReiniciar::before {
+      content: "";
+    }
+
+    #btnReiniciar {
+      padding: 20px 40px;
+      font-size: 24px;
+      font-weight: bold;
+
+      background: linear-gradient(45deg, red, orange);
+      color: white;
+
+      border: 3px solid yellow;
+      border-radius: 10px;
+
+      cursor: pointer;
+
+      box-shadow: 0 0 25px red;
+    }
+
+    #status {
+
+      padding: 20px;
+      border-radius: 5px;
+      width: 90%;
+      /* ocupa 90% da largura da tela */
+      min-height: 20vh;
+      /* ocupa pelo menos 20% da altura da tela */
+      margin: 1px auto;
+      font-size: 1.2em;
+      /* aumenta proporcionalmente */
+      min-height: auto;
+
+    }
+
+
+    .status-title {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 22px;
+      background-color: #444;
+      color: yellow;
+      padding: 5px;
+      margin: 10px 0;
+    }
+
+    .turno-title {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 24px;
+      background-color: #222;
+      /* cor de fundo da faixa */
+      color: cyan;
+      /* cor do texto */
+      padding: 8px;
+      margin: 15px 0;
+      border: 2px solid #0ff;
+      /* borda para destacar */
+    }
+
+    .derrota-title {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 26px;
+      background-color: darkred;
+      /* fundo vermelho escuro */
+      color: white;
+      /* texto branco */
+      padding: 10px;
+      margin: 20px 0;
+      border: 3px solid red;
+      /* borda vermelha para impacto */
+      text-transform: uppercase;
+      /* deixa tudo em maiúsculas */
+    }
+
+    .status-turno {
+      display: block;
+      width: 100%;
+      background-color: #222;
+      /* fundo escuro */
+      color: rgb(229, 255, 0);
+      /* texto  */
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid rgb(255, 0, 0);
+      /* borda para destacar */
+      border-radius: 5px;
+      text-align: center;
+      font-size: 19px;
+    }
+
+    .status-turno p {
+      margin: 5px 0;
+    }
+
+    @font-face {
+      font-family: 'SaiyanSans';
+      src: url('Saiyan-Sans.ttf') format('truetype');
+    }
+
+    h1 {
+      font-family: 'SaiyanSans', sans-serif;
+      color: orange;
+      text-align: center;
+      font-size: 70px;
+      font-weight: normal;
+      margin: 0px;
+      /* diminui o espaço abaixo do título */
+    }
+
+    .highlight {
+      color: red;
+      /* cor diferente só para o Ball Z */
+      font-weight: normal;
+    }
+
+    .dano-msg {
+      color: rgb(255, 0, 0);
+      font-weight: bold;
+      text-align: center;
+      font-size: 18px;
+      margin: 5px 0;
+      text-shadow: rgb(0, 225, 255)
+    }
+
+    .critico-msg {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+      font-size: 22px;
+      text-shadow: 0 0 8px yellow;
+      margin: 8px 0;
+    }
+
+    .esquiva-msg {
+      color: cyan;
+      font-style: italic;
+      text-align: center;
+      font-size: 18px;
+      margin: 5px 0;
+    }
+
+    .habilidade-msg {
+      color: rgb(0, 238, 255);
+      font-weight: bold;
+      text-align: center;
+      font-size: 22px;
+      text-shadow: 0 0 10px rgb(4, 0, 255);
+      margin: 10px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="telaInicio">
+    <h1>DRAGON <span class="highlight">BALL</span> <span class="highlight">Z</span> RPG</h1>
+    <button id="btnStart">Start</button>
+  </div>
+  <!--areas visiveis-->
+  <div id="gameArea" style="display:none;">
+    <div id="battle-container">
+
+      <div id="battle-log"></div>
+
+      <div id="game-over-overlay">
+        <button id="btnReiniciar" onclick="reiniciarJogo()">
+          Tentar Novamente
+        </button>
+      </div>
+
+    </div>
+
+
+    <div id="controls">
+      <button class="btn-ataque" onclick="acaoJogador('atacar')"><img src="imagens/melee.png" alt="Atacar"></button>
+      <button class="btn-habilidade" onclick="acaoJogador('habilidade')"><img src="imagens/hability.png" alt="Usar Habilidade"></button>
+      <button class="btn-item" onclick="acaoJogador('item')"><img src="imagens/cura.png" alt="Usar Item"></button>
+      <button class="btn-defesa" onclick="acaoJogador('defesa')"><img src="imagens/defense.png" alt="Defender"></button>
+      <button class="btn-carregar-ki" onclick="acaoJogador('carregarKi')"><img src="imagens/chargeKi.png" alt="Carregar Ki"></button>
+      <button class="btn-kaioken" onclick="acaoJogador('kaioken')"><img src="imagens/powerUp.png" alt="Kaioken"></button>
+      <button id="btnEstagio2" style="display:none;">Next</button>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <!--scripts-->
+  <script src="js/script.js"></script>
+  <script>
+    //Área de execução
+    let estagio = 0;
+
+    let personagem1 = {
+      nome: "Goku",
+      hp: 1500,
+      atk: 500,
+      def: 2500,
+      esquiva: 15,
+      critico: 10,
+      ki: 750,
+      habilidades: [
+        { nome: "Kamehameha", custo: 250, dano: 500 }
+      ],
+      itens: [
+        { nome: "Semente dos Deuses", cura: 500, quantidade: 3 }
+      ],
+      atkBase: 500,
+      esquivaBase: 15,
+      kaiokenAtivo: false,
+      kaiokenTurnos: 0,
+      ssjAtivo: false
+    }
+    let personagem2 = {
+      nome: "Vegeta",
+      hp: 1500,
+      atk: 450,
+      def: 350,
+      esquiva: 13,
+      critico: 12,
+      ki: 1000,
+      habilidades: [
+        { nome: "Galick Ho", custo: 250, dano: 550 }
+      ],
+      atkBase: 450,
+      esquivaBase: 13,
+      kaiokenAtivo: false,
+      kaiokenTurnos: 0,
+      oozaruAtivo: false
+    }
+
+    // Inicializa o estágio 1 quando o jogo começa
+    document.getElementById("btnStart").addEventListener("click", () => {
+      document.getElementById("telaInicio").style.display = "none";
+      document.getElementById("gameArea").style.display = "block";
+      inicializarEstagio(1);
+    });
+
+  </script>
+</body>
+
+</html>
