@@ -3,11 +3,11 @@ let turnoFinalizado = false
 
 const gokuBaseStats = {
     nome: "Goku",
-    hp: 1500,
+    hp: 2000,
     atk: 500,
     def: 250,
-    esquiva: 15,
-    critico: 10,
+    esquiva: 12,
+    critico: 8,
     ki: 750,
     habilidades: [
         { nome: "Kamehameha", custo: 250, dano: 500 }
@@ -26,7 +26,10 @@ function resetGokuParaEstagio(estagio) {
     personagem1.esquiva = gokuBaseStats.esquiva * multiplicador;
     personagem1.critico = gokuBaseStats.critico * multiplicador;
     personagem1.ki = gokuBaseStats.ki * multiplicador;
-    personagem1.habilidades = gokuBaseStats.habilidades.map(h => ({ ...h }));
+    personagem1.habilidades = gokuBaseStats.habilidades.map(h => ({
+        ...h,
+        dano: h.dano * multiplicador
+    }));
     personagem1.itens = gokuBaseStats.itens.map(i => ({ ...i }));
     personagem1.atkBase = personagem1.atk;
     personagem1.esquivaBase = personagem1.esquiva;
@@ -112,11 +115,11 @@ function obterAnimacaoAtaque(atacante) {
     }
 
     if (atacante.nome === 'Freeza') {
-        return ['imagens/freezaHitGoku.mp4', 'imagens/freezaFullAtaque.mp4'];
         if(atacante.transformacaoAtiva){
             return ['imagens/freezaFullAtaque2.mp4', 'imagens/freezaFullAtaque.mp4'];
-        }
-    }
+            }
+        }       
+        return ['imagens/freezaHitGoku.mp4', 'imagens/freezaAtaque2.mp4'];
 
     return ['imagens/gokuAtaque.mp4', 'imagens/gokuAtaque2.mp4'];
 }
@@ -126,7 +129,7 @@ function obterSomHabilidade(habilidade) {
     const mapeadorSons = {
         "Kamehameha": "sons/Kamehameha.mp3",
         "SuperKamehameha": "sons/SuperKamehameha.mp3",
-        "Kamehameha X20":"sons/kaiokenx20.mp3",
+        "Kamehameha X20":"sons/kamehamehax20.mp3",
         "Galick Ho": "sons/GalickHo.mp3",
         "Death Beam": "sons/DeathBeam.mp3",
         "Death Ball": "sons/DeathBall.mp3",
@@ -147,6 +150,7 @@ function tocarSomHabilidade(habilidade) {
 
 function obterSomEfeito(nomeEfeito) {
     const mapeadorEfeitos = {
+        "Kaiokenx20":"sons/kaiokenx20.mp3",
         "Kaioken": "sons/kaioken.mp3",
         "Super Saiyajin": "sons/gokuSSJ.mp3",
         "Oozaru": "sons/oozaru.mp3",
@@ -189,7 +193,7 @@ function pararEfeitosAudio() {
 function obterAnimacaoHabilidade(atacante, habilidade) {
     if (atacante.nome === 'Goku') {
         if (atacante.kaiokenAtivo &&  atacante.ssjAtivo === false && estagio === 2 && atacante.ki >= 250) {
-            return ['imagens/kaiokenx20.mp4'];
+            return ['imagens/kamehamehax20.mp4'];
         }
         if (atacante.ssjAtivo && atacante.ki >= 250) {
             return ['imagens/SuperKamehameha2.mp4', 'imagens/SuperKamehameha.mp4'];
@@ -274,16 +278,16 @@ function verificarTransformacaoGoku(personagem) {
     if (personagem.nome !== "Goku" || personagem.ssjAtivo || estagio === 1) return;
     if (personagem.hp <= 900) {
         personagem.ssjAtivo = true;
-        personagem.hp += 600;
-        personagem.atk += 180;
+        personagem.hp += 1000;
+        personagem.atk += 400;
         personagem.def += 150;
-        personagem.esquiva += 20;
-        personagem.critico += 10;
-        personagem.ki += 300;
+        personagem.critico += 5;
+        personagem.ki += 500;
         personagem.habilidades[0].nome = "SuperKamehameha";
-        personagem.habilidades[0].dano += 250;
-        logBattle(`<div class="habilidade-msg">${personagem.nome} se transformou em Super Saiyajin!</div>`);
+        personagem.habilidades[0].dano += 200;
+        logBattle(`<div class="habilidade-msg">${personagem.nome} despertou o Super Saiyajin!</div>`);
         tocarSomEfeito("Super Saiyajin");
+        atualizarBotaoKaioken();
         const battleLog = document.getElementById("battle-log");
         const video = document.createElement("video");
         video.src = "imagens/gokuSSJ.mp4";
@@ -309,14 +313,14 @@ function mostrarAnimDerrota(personagem) {
     video.loop = true;
     video.style.maxWidth = "50%";
 
-    if (personagem.nome === "Goku") {
+    if (personagem.nome === "Goku" && estagio===1) {
         video.src = "imagens/vegetaKO.mp4";
     } else if (personagem.nome === "Freeza") {
-        video.src = "imagens/finalizacaoFreeza.mp4";
+        video.src = "imagens/freezaMorreGoku.mp4";
     } else if (personagem.nome === "Vegeta") {
         video.src = "imagens/gokuKO.mp4";
-    } else {
-        video.src = "imagens/.mp4";
+    } else if(personagem.nome === "Goku" && estagio===2) {
+        video.src = "imagens/gokuMorreFreeza.mp4";
     }
 
     battleLog.appendChild(video);
@@ -326,9 +330,9 @@ function transformarFreeza(defensor) {
     if (defensor.nome !== "Freeza" || defensor.transformacaoAtiva) return;
 
     defensor.transformacaoAtiva = true;
-    defensor.hp += 500;
-    defensor.atk += 120;
-    defensor.def += 80;
+    defensor.hp += 950;
+    defensor.atk += 50;
+    defensor.def += 100;
     defensor.critico += 5;
     defensor.ki += 500
     defensor.habilidades[0].nome = "Death Ball";
@@ -528,6 +532,16 @@ function ocultarBotaoEstagio2() {
     botao.style.display = "none";
 }
 
+function atualizarBotaoKaioken() {
+    const botao = document.querySelector(".btn-kaioken");
+    if (!botao) return;
+
+    const bloqueado = estagio === 2 && personagem1 && personagem1.nome === "Goku" && personagem1.ssjAtivo;
+    botao.disabled = bloqueado;
+    botao.style.opacity = bloqueado ? "0.6" : "1";
+    botao.style.cursor = bloqueado ? "not-allowed" : "pointer";
+}
+
 // Configuração de estágios e personagens
 const estagios = {
     1: {
@@ -536,7 +550,7 @@ const estagios = {
         inimigo: "Vegeta",
         criarPersonagem2: () => ({
             nome: "Vegeta",
-            hp: 1500,
+            hp: 2000,
             atk: 450,
             def: 350,
             esquiva: 13,
@@ -558,16 +572,16 @@ const estagios = {
         inimigo: "Freeza",
         criarPersonagem2: () => ({
             nome: "Freeza",
-            hp: 2500,
-            atk: 550,
-            def: 400,
+            hp: 4000,
+            atk: 1200,
+            def: 700,
             esquiva: 20,
             critico: 15,
-            ki: 1300,
+            ki: 1500,
             habilidades: [
                 { nome: "Death Beam", custo: 250, dano: 1000 }
             ],
-            atkBase: 550,
+            atkBase: 1200,
             esquivaBase: 20,
             kaiokenAtivo: false,
             kaiokenTurnos: 0,
@@ -581,9 +595,9 @@ const estagios = {
         inimigo: "Cell",
         criarPersonagem2: () => ({
             nome: "Cell",
-            hp: 3000,
+            hp: 4000,
             atk: 600,
-            def: 500,
+            def: 1400,
             esquiva: 30,
             critico: 12,
             ki: 2000,
@@ -609,6 +623,7 @@ function inicializarEstagio(numEstagio) {
     tocarTrilhaEstagio(estagio);
 
     resetGokuParaEstagio(estagio);
+    atualizarBotaoKaioken();
 
     // Reseta personagem2
     personagem2 = config.criarPersonagem2();
@@ -712,6 +727,11 @@ function usarKaioken(personagem) {
     const custoKi = 200;
     const desgasteHP = 200;
 
+    if (estagio === 2 && personagem.nome === "Goku" && personagem.ssjAtivo) {
+        logBattle(`<div class="esquiva-msg">${personagem.nome} não pode usar Kaioken após se transformar!</div>`);
+        return;
+    }
+
     if (personagem.kaiokenAtivo) {
         logBattle(`<div class="esquiva-msg">${personagem.nome} já está usando Kaioken!</div>`);
         return;
@@ -737,6 +757,7 @@ function usarKaioken(personagem) {
     }
     
     logBattle(`<div class="habilidade-msg">${personagem.nome} usou o Kaioken! Mas isso teve um preço...</div>`);
+    if(estagio===1){
     tocarSomEfeito("Kaioken");
     const battleLog = document.getElementById("battle-log");
     const video = document.createElement("video");
@@ -748,6 +769,21 @@ function usarKaioken(personagem) {
     video.controls = false;
     video.style.maxWidth = "50%";
     battleLog.appendChild(video);
+    }
+    if(estagio===2){
+    tocarSomEfeito("Kaiokenx20");
+    const battleLog = document.getElementById("battle-log");
+    const video = document.createElement("video");
+    video.src = "imagens/kaiokenx20.mp4";
+    video.style.display = "block";
+    video.style.margin = "10px auto";
+    video.loop = false;
+    video.autoplay = true;
+    video.controls = false;
+    video.style.maxWidth = "50%";
+    battleLog.appendChild(video);
+    }
+    
 
 }
 
@@ -761,7 +797,7 @@ function atualizarKaioken(personagem) {
             personagem.atk = personagem.atkBase;
             personagem.esquiva = personagem.esquivaBase;
 
-            // Reseta o nome da habilidade quando Kaioken expira
+            // Reseta o nome da habilidade quando Kaioken acaba
             if (estagio === 2 && personagem.ssjAtivo === false) {
                 personagem.habilidades[0].nome = "Kamehameha";
             }
