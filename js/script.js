@@ -4,9 +4,10 @@ let turnoFinalizado = false
 const gokuBaseStats = {
     nome: "Goku",
     hp: 2000,
+    hpMax: 2000,
     atk: 500,
     def: 250,
-    esquiva: 12,
+    esquiva: 8,
     critico: 8,
     ki: 750,
     habilidades: [
@@ -21,6 +22,7 @@ function resetGokuParaEstagio(estagio) {
     const multiplicador = 2 ** (estagio - 1);
     personagem1.nome = gokuBaseStats.nome;
     personagem1.hp = gokuBaseStats.hp * multiplicador;
+    personagem1.hpMax = gokuBaseStats.hpMax * multiplicador;
     personagem1.atk = gokuBaseStats.atk * multiplicador;
     personagem1.def = gokuBaseStats.def * multiplicador;
     personagem1.esquiva = gokuBaseStats.esquiva * multiplicador;
@@ -115,11 +117,11 @@ function obterAnimacaoAtaque(atacante) {
     }
 
     if (atacante.nome === 'Freeza') {
-        if(atacante.transformacaoAtiva){
+        if (atacante.transformacaoAtiva) {
             return ['imagens/freezaFullAtaque2.mp4', 'imagens/freezaFullAtaque.mp4'];
-            }
-        }       
-        return ['imagens/freezaHitGoku.mp4', 'imagens/freezaAtaque2.mp4'];
+        }
+    }
+    return ['imagens/freezaHitGoku.mp4', 'imagens/freezaAtaque2.mp4'];
 
     return ['imagens/gokuAtaque.mp4', 'imagens/gokuAtaque2.mp4'];
 }
@@ -129,7 +131,7 @@ function obterSomHabilidade(habilidade) {
     const mapeadorSons = {
         "Kamehameha": "sons/Kamehameha.mp3",
         "SuperKamehameha": "sons/SuperKamehameha.mp3",
-        "Kamehameha X20":"sons/kamehamehax20.mp3",
+        "Kamehameha X20": "sons/kamehamehax20.mp3",
         "Galick Ho": "sons/GalickHo.mp3",
         "Death Beam": "sons/DeathBeam.mp3",
         "Death Ball": "sons/DeathBall.mp3",
@@ -150,7 +152,7 @@ function tocarSomHabilidade(habilidade) {
 
 function obterSomEfeito(nomeEfeito) {
     const mapeadorEfeitos = {
-        "Kaiokenx20":"sons/kaiokenx20.mp3",
+        "Kaiokenx20": "sons/kaiokenx20.mp3",
         "Kaioken": "sons/kaioken.mp3",
         "Super Saiyajin": "sons/gokuSSJ.mp3",
         "Oozaru": "sons/oozaru.mp3",
@@ -194,7 +196,7 @@ function pararEfeitosAudio() {
 
 function obterAnimacaoHabilidade(atacante, habilidade) {
     if (atacante.nome === 'Goku') {
-        if (atacante.kaiokenAtivo &&  atacante.ssjAtivo === false && estagio === 2 && atacante.ki >= 250) {
+        if (atacante.kaiokenAtivo && atacante.ssjAtivo === false && estagio === 2 && atacante.ki >= 250) {
             return ['imagens/kamehamehax20.mp4'];
         }
         if (atacante.ssjAtivo && atacante.ki >= 250) {
@@ -204,10 +206,10 @@ function obterAnimacaoHabilidade(atacante, habilidade) {
             return ['imagens/kameKaioken.mp4'];
         }
         if (atacante.ki >= 250 && atacante.kaiokenAtivo === false && atacante.ssjAtivo === false) {
-            return ['imagens/kamehameha2.mp4'];
+            return ['imagens/kamehameha.mp4'];
         }
     }
-    
+
     if (habilidade.nome === 'Galick Ho') {
         return ['imagens/galickHo.mp4'];
     }
@@ -221,7 +223,7 @@ function obterAnimacaoHabilidade(atacante, habilidade) {
         return ['imagens/DeathBall.mp4', 'imagens/DeathBall.mp4'];
     }
 
-    return ['imagens/0.mp4','imagens/01.mp4'];
+    return ['imagens/0.mp4', 'imagens/01.mp4'];
 }
 
 function statusDeBatalha(personagemA, personagemB) {
@@ -286,6 +288,7 @@ function verificarTransformacaoGoku(personagem) {
         personagem.critico += 5;
         personagem.ki += 500;
         personagem.habilidades[0].nome = "SuperKamehameha";
+        personagem.habilidades[0].custo += 100;
         personagem.habilidades[0].dano += 200;
         logBattle(`<div class="habilidade-msg">${personagem.nome} despertou o Super Saiyajin!</div>`);
         tocarSomEfeito("Super Saiyajin");
@@ -315,13 +318,13 @@ function mostrarAnimDerrota(personagem) {
     video.loop = true;
     video.style.maxWidth = "50%";
 
-    if (personagem.nome === "Goku" && estagio===1) {
+    if (personagem.nome === "Goku" && estagio === 1) {
         video.src = "imagens/vegetaKO.mp4";
     } else if (personagem.nome === "Freeza") {
         video.src = "imagens/freezaMorreGoku.mp4";
     } else if (personagem.nome === "Vegeta") {
         video.src = "imagens/gokuKO.mp4";
-    } else if(personagem.nome === "Goku" && estagio===2) {
+    } else if (personagem.nome === "Goku" && estagio === 2) {
         video.src = "imagens/gokuMorreFreeza.mp4";
     }
 
@@ -332,7 +335,7 @@ function transformarFreeza(defensor) {
     if (defensor.nome !== "Freeza" || defensor.transformacaoAtiva) return;
 
     defensor.transformacaoAtiva = true;
-    defensor.hp += 950;
+    defensor.hp += 1000;
     defensor.atk += 50;
     defensor.def += 100;
     defensor.critico += 5;
@@ -388,7 +391,7 @@ function atacar(atacante, defensor) {
         turnoFinalizado = true; // encerra o turno aqui
         return;
     }
-    if (defensor.nome === "Freeza" && defensor.hp <= 1200 && !defensor.transformacaoAtiva) {
+    if (defensor.nome === "Freeza" && defensor.hp <= 900 && !defensor.transformacaoAtiva) {
         transformarFreeza(defensor);
         turnoFinalizado = true;
         return;
@@ -706,7 +709,9 @@ function usarItem(personagem, item) {
         battleLog.appendChild(img);
 
         personagem.hp += item.cura;
-        if (personagem.hp > personagem.hpMax) personagem.hp = personagem.hpMax; // limite máximo de HP
+        if (personagem.hp > personagem.hpMax)
+            personagem.hp = personagem.hpMax;
+        // limite máximo de HP
 
         item.quantidade--; // reduz uma semente
 
@@ -726,8 +731,8 @@ function carregarKi(personagem) {
     logBattle(`<div class="habilidade-msg">${personagem.nome} concentrou energia e recuperou ${ganho} de Ki!</div>`);
 }
 function usarKaioken(personagem) {
-    const custoKi = 200;
-    const desgasteHP = 200;
+    const custoKi = estagio === 2 ? 500 : 200;
+    const desgasteHP = estagio === 2 ? 300 : 200;
 
     if (estagio === 2 && personagem.nome === "Goku" && personagem.ssjAtivo) {
         logBattle(`<div class="esquiva-msg">${personagem.nome} não pode usar Kaioken após se transformar!</div>`);
@@ -756,36 +761,37 @@ function usarKaioken(personagem) {
     // Altera o nome da habilidade para Kamehameha X20 quando Kaioken é ativado no estágio 2
     if (estagio === 2 && personagem.ssjAtivo === false) {
         personagem.habilidades[0].nome = "Kamehameha X20";
+        personagem.habilidades[0].custo += 100; // Aumenta o custo de Ki
     }
-    
+
     logBattle(`<div class="habilidade-msg">${personagem.nome} usou o Kaioken! Mas isso teve um preço...</div>`);
-    if(estagio===1){
-    tocarSomEfeito("Kaioken");
-    const battleLog = document.getElementById("battle-log");
-    const video = document.createElement("video");
-    video.src = "imagens/kaioken.mp4";
-    video.style.display = "block";
-    video.style.margin = "10px auto";
-    video.loop = false;
-    video.autoplay = true;
-    video.controls = false;
-    video.style.maxWidth = "50%";
-    battleLog.appendChild(video);
+    if (estagio === 1) {
+        tocarSomEfeito("Kaioken");
+        const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/kaioken.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "50%";
+        battleLog.appendChild(video);
     }
-    if(estagio===2){
-    tocarSomEfeito("Kaiokenx20");
-    const battleLog = document.getElementById("battle-log");
-    const video = document.createElement("video");
-    video.src = "imagens/kaiokenx20.mp4";
-    video.style.display = "block";
-    video.style.margin = "10px auto";
-    video.loop = false;
-    video.autoplay = true;
-    video.controls = false;
-    video.style.maxWidth = "50%";
-    battleLog.appendChild(video);
+    if (estagio === 2) {
+        tocarSomEfeito("Kaiokenx20");
+        const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/kaiokenx20.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "50%";
+        battleLog.appendChild(video);
     }
-    
+
 
 }
 
